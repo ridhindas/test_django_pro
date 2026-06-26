@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: test-django-pro
-        image: ridhindas/django-app
+        image: ridhindas/django-app:latest
         ports:
         - containerPort: 8080
