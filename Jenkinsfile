@@ -2,9 +2,11 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "django-app"
+        DOCKERHUB_USER = "ridhindas"
+        IMAGE_NAME = "${DOCKERHUB_USER}/django-app"
         CONTAINER_NAME = "django-container"
         PORT = "8000"
+        IMAGE_TAG = "latest"
     }
 
     stages {
@@ -18,19 +20,37 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
+                sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
             }
         }
 
         stage('Django Check') {
             steps {
-                sh 'docker run --rm $IMAGE_NAME python manage.py check'
+                sh "docker run --rm $IMAGE_NAME:$IMAGE_TAG python manage.py check"
             }
         }
 
         stage('Run Migrations') {
             steps {
-                sh 'docker run --rm $IMAGE_NAME python manage.py migrate'
+                sh "docker run --rm $IMAGE_NAME:$IMAGE_TAG python manage.py migrate"
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                sh "docker push $IMAGE_NAME:$IMAGE_TAG"
             }
         }
 
@@ -44,7 +64,7 @@ pipeline {
                   --name $CONTAINER_NAME \
                   -p $PORT:8000 \
                   --restart unless-stopped \
-                  $IMAGE_NAME
+                  $IMAGE_NAME:$IMAGE_TAG
                 '''
             }
         }
@@ -52,11 +72,11 @@ pipeline {
 
     post {
         success {
-            echo "Deployment completed successfully."
+            echo "CI/CD Pipeline completed successfully 🚀"
         }
 
         failure {
-            echo "Pipeline failed."
+            echo "Pipeline failed ❌"
         }
     }
 }
