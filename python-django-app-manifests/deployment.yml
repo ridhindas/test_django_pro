@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test_django_pro
+  name: test-django-pro
   labels:
-    app: test_django_pro
+    app: test-django-pro
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: test_django_pro
+      app: test-django-pro
   template:
     metadata:
       labels:
-        app: test_django_pro
+        app: test-django-pro
     spec:
       containers:
-      - name: test_django_pro
+      - name: test-django-pro
         image: ridhindas/django-app
         ports:
         - containerPort: 8080
